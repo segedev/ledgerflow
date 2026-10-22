@@ -1,0 +1,31 @@
+{
+  "name": "ledgerflow",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Transactional webhook and double-entry reconciliation engine",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/server.js",
+    "dev": "node --watch --env-file=.env src/server.js",
+    "test": "node --test test/*.test.js",
+    "test:unit": "node --test test/security.test.js test/anomaly.test.js test/http.test.js test/reconciliation.test.js",
+    "demo": "node --env-file=.env scripts/demo.js",
+    "setup": "node scripts/setup.js"
+  },
+  "dependencies": {
+    "express": "5.3.0",
+    "mongodb": "7.7.0"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "11.3.0",
+    "supertest": "7.2.2"
+  },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "8.0.17"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+# Local development only: MongoDB is intentionally unauthenticated and loopback-bound.
+services:
+  mongo:
+    image: mongo:8.0.17
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports: ["127.0.0.1:27017:27017"]
+    volumes: ["ledgerflow-data:/data/db"]
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "try { rs.status() } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }; if (!db.hello().isWritablePrimary) quit(1)"
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+  api:
+    build: .
+    env_file: .env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/ledgerflow?replicaSet=rs0&directConnection=true
+      HOST: 0.0.0.0
+      PORT: 3000
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  ledgerflow-data:
